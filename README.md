@@ -12,3 +12,4 @@ TicTacToe game project for TU-Sofia
  - 3rd stage - many games in parallel, scalable game server, (optional) seperate application as server proxy, game session initiation with authentication code
  - 4th stage - waiting lobby, support for random multiplayer
  - optional stage - desktop application, OpenGL GUI
+ - optional stage - mobile application 
