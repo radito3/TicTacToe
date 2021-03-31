@@ -5,6 +5,7 @@ TicTacToe game project for TU-Sofia
  - Multi-threaded application
  - Event-driven architecture
  - Decoupled application modules
+ - Resiliency against network issues (slow connection, signal loss, etc.)
 
 ## Implementation stages
  - 1st stage - Single-machine, local process, console output, iteratively-switching 2 player tic-tac-toe 
