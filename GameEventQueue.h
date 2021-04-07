@@ -1,19 +1,18 @@
-#ifndef TICTACTOE_GAMEMANAGER_H
-#define TICTACTOE_GAMEMANAGER_H
+#ifndef TICTACTOE_GAMEEVENTQUEUE_H
+#define TICTACTOE_GAMEEVENTQUEUE_H
 
 #include <queue>
 #include <mutex>
 #include "GameEvent.h"
 
-//maybe just GameEventQueue is more appropriate?
-class GameManager {
+class GameEventQueue {
     std::queue<GameEvent> event_queue;
     std::mutex ev_queue_mutex;
 
     typedef std::lock_guard<std::mutex> lock_t;
 
 public:
-    GameManager() = default;
+    GameEventQueue() = default;
 
     bool submit_event(const GameEvent& event) {
         lock_t lock(ev_queue_mutex);
@@ -33,4 +32,4 @@ public:
     // <event> peek_next_event()
 };
 
-#endif //TICTACTOE_GAMEMANAGER_H
+#endif //TICTACTOE_GAMEEVENTQUEUE_H

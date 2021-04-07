@@ -2,18 +2,18 @@
 #define TICTACTOE_GAMESESSION_H
 
 #include <random>
-#include "GameManager.h"
+#include "GameEventQueue.h"
 
 class GameSession {
-    GameManager manager;
+    GameEventQueue eventQueue;
     int player_one_id;
     int player_two_id;
     int player_turn;
     bool is_finished;
 
 public:
-    GameSession(GameManager manager, int player_one_id, int player_two_id)
-        : manager(std::move(manager)),
+    GameSession(GameEventQueue eventQueue, int player_one_id, int player_two_id)
+        : eventQueue(std::move(eventQueue)),
         player_one_id(player_one_id),
         player_two_id(player_two_id),
         is_finished(false)

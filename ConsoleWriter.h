@@ -4,16 +4,9 @@
 #include <iostream>
 #include <cstring>
 #include "DisplayWriter.h"
+#include "AsciiEscapeCodes.h"
 
 class ConsoleWriter : public DisplayWriter {
-
-    struct AsciiEscapeCodes {
-        constexpr static const char * Up = "\u001b[%dA";
-        constexpr static const char * Down = "\u001b[%dB";
-        constexpr static const char * Right = "\u001b[%dC";
-        constexpr static const char * Left = "\u001b[%dD";
-        constexpr static const char * MoveToPos = "\x1b[%d;%dH";
-    };
 
     const int gitBashLineOffset = 4;
 
@@ -21,26 +14,23 @@ class ConsoleWriter : public DisplayWriter {
     const int symbols_per_column = 5;
 
     static void move_cursor_to(int line, int column) {
-        char* buff = new char[strlen(AsciiEscapeCodes::MoveToPos) + 5];
-        sprintf(buff, AsciiEscapeCodes::MoveToPos, line, column);
-        std::cout << buff;
-        delete [] buff;
+        printf(AsciiEscapeCodes::MoveToPos, line, column);
     }
 
     [[nodiscard]] std::pair<int, int> determine_start_coordinates(const Coordinate& coord) const noexcept {
         int coord_x = coord.x;
         int coord_y = coord.y;
-        int start_x = coord_x > 0 ? coord_x * symbols_per_column + 2 : 0;
-        int start_y = coord_y > 0 ? coord_y * symbols_per_line + 1 : 0;
-        return { start_x, start_y };
+        int start_column = coord_x > 0 ? coord_x * symbols_per_column + 2 : 0;
+        int start_line = coord_y > 0 ? coord_y * symbols_per_line + 1 : 0;
+        return { start_column, start_line };
     }
 
 public:
 
 /*
- * xx-xx|x\x/x|xxxxx
- * /xxx\|xxXxx|xxxxx
- * \x_x/|x/x\x|xxxxx
+ * xx-xx|x\x/x|xxxx/
+ * /xxx\|xxXxx|xx//x
+ * \x_x/|x/x\x|//xxx
  * - - - - - - - - -
  * \xxxx|\xxxx|xxxxx
  * x\\xx|x\\xx|xxxxx
@@ -51,59 +41,107 @@ public:
  */
 
     void write_grid() const override {
-        for (int i = 0 + gitBashLineOffset; i < 11 + gitBashLineOffset; i++) {
-            if (i == 3 + gitBashLineOffset || i == 7 + gitBashLineOffset) {
+        for (int line = 0; line < 11; line++) {
+            if (line == 3|| line == 7) {
                 std::cout << "- - - - - - - - -" << std::endl;
                 continue;
             }
-            move_cursor_to(i, 6);
+            move_cursor_to(line + gitBashLineOffset, 6);
             std::cout << '|';
-            move_cursor_to(i, 12);
+            move_cursor_to(line + gitBashLineOffset, 12);
             std::cout << '|' << std::endl;
         }
     }
 
     void write_cross(const Coordinate &coordinate) const override {
-        auto [ start_x, start_y ] = determine_start_coordinates(coordinate);
+        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
-        move_cursor_to(start_y + gitBashLineOffset, start_x);
+        move_cursor_to(start_line + gitBashLineOffset, start_column);
         std::cout << " \\ / ";
-        move_cursor_to(start_y + gitBashLineOffset + 1, start_x);
+        move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
         std::cout << "  X  ";
-        move_cursor_to(start_y + gitBashLineOffset + 2, start_x);
+        move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
         std::cout << " / \\ ";
     }
 
     void write_circle(const Coordinate &coordinate) const override {
-        auto [ start_x, start_y ] = determine_start_coordinates(coordinate);
+        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
-        move_cursor_to(start_y + gitBashLineOffset, start_x);
+        move_cursor_to(start_line + gitBashLineOffset, start_column);
         std::cout << "  _  ";
-        move_cursor_to(start_y + gitBashLineOffset + 1, start_x);
+        move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
         std::cout << "/   \\";
-        move_cursor_to(start_y + gitBashLineOffset + 2, start_x);
+        move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
         std::cout << "\\ _ /";
     }
 
     void write_stroke(const Coordinate &coordinate, Direction direction) const override {
-        auto [ start_x, start_y ] = determine_start_coordinates(coordinate);
+        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
-        if (direction == DIAGONAL) {
-            throw std::runtime_error("not yet implemented");
+        switch (direction) {
+            case DOWN:
+                for (int line_offset = 0; line_offset < 11; line_offset++) {
+                    if (line_offset == 3 || line_offset == 7) {
+                        continue;
+                    }
+                    move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + 2);
+                    std::cout << '|';
+                }
+                break;
+            case ACROSS:
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
+                std::cout << "-----";
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 7);
+                std::cout << "-----";
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 13);
+                std::cout << "-----";
+                break;
+            case DIAGONAL_RIGHT:
+                move_cursor_to(start_line + gitBashLineOffset, start_column);
+                std::cout << '\\';
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 2);
+                std::cout << "\\\\";
+                move_cursor_to(start_line + gitBashLineOffset + 2, start_column + 4);
+                std::cout << "\\\\";
+
+                move_cursor_to(start_line + gitBashLineOffset + 4, start_column + 7);
+                std::cout << '\\';
+                move_cursor_to(start_line + gitBashLineOffset + 5, start_column + 8);
+                std::cout << "\\\\";
+                move_cursor_to(start_line + gitBashLineOffset + 6, start_column + 10);
+                std::cout << "\\\\";
+
+                move_cursor_to(start_line + gitBashLineOffset + 8, start_column + 13);
+                std::cout << '\\';
+                move_cursor_to(start_line + gitBashLineOffset + 9, start_column + 14);
+                std::cout << "\\\\";
+                move_cursor_to(start_line + gitBashLineOffset + 10, start_column + 16);
+                std::cout << "\\\\";
+                break;
+            case DIAGONAL_LEFT:
+                move_cursor_to(start_line + gitBashLineOffset, start_column + 5);
+                std::cout << '/';
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 3);
+                std::cout << "//";
+                move_cursor_to(start_line + gitBashLineOffset + 2, start_column + 1);
+                std::cout << "//";
+
+                move_cursor_to(start_line + gitBashLineOffset + 4, start_column - 1);
+                std::cout << '/';
+                move_cursor_to(start_line + gitBashLineOffset + 5, start_column - 3);
+                std::cout << "//";
+                move_cursor_to(start_line + gitBashLineOffset + 6, start_column - 5);
+                std::cout << "//";
+
+                move_cursor_to(start_line + gitBashLineOffset + 8, start_column - 7);
+                std::cout << '/';
+                move_cursor_to(start_line + gitBashLineOffset + 9, start_column - 9);
+                std::cout << "//";
+                move_cursor_to(start_line + gitBashLineOffset + 10, start_column - 10);
+                std::cout << "//";
+                break;
         }
 
-        move_cursor_to(start_y + gitBashLineOffset, start_x);
-
-        if (direction == DOWN) {
-            //needs debuging...
-            std::cout << "  |  ";
-            move_cursor_to(start_y + gitBashLineOffset + 1, start_x);
-            std::cout << "  |  ";
-            move_cursor_to(start_y + gitBashLineOffset + 2, start_x);
-            std::cout << "  |  ";
-        } else if (direction == ACROSS) {
-            //...
-        }
     }
 };
 
