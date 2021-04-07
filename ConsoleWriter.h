@@ -64,6 +64,15 @@ public:
         std::cout << " / \\ ";
     }
 
+    void write_cross_placeholder(const Coordinate& coordinate) const override {
+        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
+        int line_offset = coordinate.y == 0 ? 1 : coordinate.y;
+        int column_offset = coordinate.x == 0 ? 3 : coordinate.x + 1;
+
+        move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + column_offset);
+        std::cout << 'x';
+    }
+
     void write_circle(const Coordinate &coordinate) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
@@ -73,6 +82,15 @@ public:
         std::cout << "/   \\";
         move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
         std::cout << "\\ _ /";
+    }
+
+    void write_circle_placeholder(const Coordinate& coordinate) const override {
+        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
+        int line_offset = coordinate.y == 0 ? 1 : coordinate.y;
+        int column_offset = coordinate.x == 0 ? 3 : coordinate.x + 1;
+
+        move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + column_offset);
+        std::cout << 'o';
     }
 
     void write_stroke(const Coordinate &coordinate, Direction direction) const override {
