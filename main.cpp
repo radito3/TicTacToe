@@ -1,21 +1,14 @@
-#include <iostream>
 #include "ConsoleWriter.h"
+#include "GameSession.h"
 
 int main() {
-    ConsoleWriter writer;
-    writer.write_grid();
-//    writer.write_cross({0, 0});
-//    writer.write_circle({1, 1});
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 3; ++j) {
-//            writer.write_circle_placeholder({i, j});
-            writer.write_cross_placeholder({i, j});
-        }
-    }
-//    writer.write_stroke({0, 0}, DIAGONAL_RIGHT);
-//    writer.write_stroke({2, 0}, DIAGONAL_LEFT);
+    //these two statements will be called by the server
+    GameSession session(new ConsoleWriter,
+                        Player("1", &DisplayWriter::write_circle, &DisplayWriter::write_circle_placeholder),
+                        Player("2", &DisplayWriter::write_cross, &DisplayWriter::write_cross_placeholder));
+    session.play();
 
-
+    //this is console-game-specific
     printf(AsciiEscapeCodes::MoveToPos, 15, 15);
     return 0;
 }

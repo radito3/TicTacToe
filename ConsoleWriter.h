@@ -93,11 +93,11 @@ public:
         std::cout << 'o';
     }
 
-    void write_stroke(const Coordinate &coordinate, Direction direction) const override {
+    void write_stroke(const Coordinate &coordinate, StrokeDirection direction) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
         switch (direction) {
-            case DOWN:
+            case StrokeDirection::DOWN:
                 for (int line_offset = 0; line_offset < 11; line_offset++) {
                     if (line_offset == 3 || line_offset == 7) {
                         continue;
@@ -106,7 +106,7 @@ public:
                     std::cout << '|';
                 }
                 break;
-            case ACROSS:
+            case StrokeDirection::ACROSS:
                 move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
                 std::cout << "-----";
                 move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 7);
@@ -114,7 +114,7 @@ public:
                 move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 13);
                 std::cout << "-----";
                 break;
-            case DIAGONAL_RIGHT:
+            case StrokeDirection::DIAGONAL_RIGHT:
                 move_cursor_to(start_line + gitBashLineOffset, start_column);
                 std::cout << '\\';
                 move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 2);
@@ -136,7 +136,7 @@ public:
                 move_cursor_to(start_line + gitBashLineOffset + 10, start_column + 16);
                 std::cout << "\\\\";
                 break;
-            case DIAGONAL_LEFT:
+            case StrokeDirection::DIAGONAL_LEFT:
                 move_cursor_to(start_line + gitBashLineOffset, start_column + 5);
                 std::cout << '/';
                 move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 3);

@@ -1,17 +1,15 @@
 #ifndef TICTACTOE_GAMEEVENT_H
 #define TICTACTOE_GAMEEVENT_H
 
+#include <tuple>
+#include "GameEventType.h"
+
 class GameEvent {
-    int player_id;
-    //...
 public:
-    explicit GameEvent(int playerId) : player_id(playerId) {}
+    virtual ~GameEvent() = default;
 
-    int get_player_id() const {
-        return player_id;
-    }
+    virtual GameEventType get_event_type() const noexcept = 0;
 
-    //...
 };
 
 #endif //TICTACTOE_GAMEEVENT_H

@@ -18,7 +18,7 @@ public:
 
     virtual void write_circle_placeholder(const Coordinate&) const = 0;
 
-    virtual void write_stroke(const Coordinate&, Direction) const = 0;
+    virtual void write_stroke(const Coordinate&, StrokeDirection) const = 0;
 
 };
 

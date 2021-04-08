@@ -3,33 +3,41 @@
 
 #include <queue>
 #include <mutex>
+#include <condition_variable>
 #include "GameEvent.h"
 
 class GameEventQueue {
-    std::queue<GameEvent> queue;
+    std::queue<GameEvent*> queue;
     std::mutex q_mutex;
 
-    typedef std::lock_guard<std::mutex> lock_t;
+    typedef std::unique_lock<std::mutex> lock_t;
+
+    std::condition_variable empty_cond;
 
 public:
     GameEventQueue() = default;
 
-    bool submit_event(const GameEvent& event) {
+    void submit_event(GameEvent* event) {
         lock_t lock(q_mutex);
-        if (/*event rejection policy*/ queue.size() == 1) { //check if should reject
-            return false;
-        }
-        queue.push(event);
-        return true;
+        queue.push(std::forward<GameEvent*>(event));
+        empty_cond.notify_all();
     }
 
-    GameEvent& get_next_event() {
-        //block until there is an event
+    GameEvent* retrieve_next_event() {
+        lock_t lock(q_mutex);
+        empty_cond.wait(lock, [&]() { return !queue.empty(); });
 
-        return queue.back();
+        GameEvent* ev = queue.front();
+        queue.pop();
+        return ev;
     }
 
-    // <event> peek_next_event()
+    const GameEvent* peek_next_event() {
+        lock_t lock(q_mutex);
+        empty_cond.wait(lock, [&]() { return !queue.empty(); });
+
+        return queue.front();
+    }
 };
 
 #endif //TICTACTOE_GAMEEVENTQUEUE_H
