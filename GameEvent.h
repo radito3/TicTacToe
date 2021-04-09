@@ -1,7 +1,6 @@
 #ifndef TICTACTOE_GAMEEVENT_H
 #define TICTACTOE_GAMEEVENT_H
 
-#include <tuple>
 #include "GameEventType.h"
 
 class GameEvent {

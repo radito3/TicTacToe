@@ -23,13 +23,11 @@ public:
         empty_cond.notify_all();
     }
 
-    GameEvent* retrieve_next_event() {
+    void pop_event() {
         lock_t lock(q_mutex);
-        empty_cond.wait(lock, [&]() { return !queue.empty(); });
-
-        GameEvent* ev = queue.front();
-        queue.pop();
-        return ev;
+        if (!queue.empty()) {
+            queue.pop();
+        }
     }
 
     const GameEvent* peek_next_event() {

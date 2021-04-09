@@ -18,7 +18,7 @@ public:
     Player(std::string id, symbol_writer s_writer, placeholder_writer p_writer) :
         id(std::move(id)), symbol_writer_func(s_writer), placeholder_writer_func(p_writer) {}
 
-    [[nodiscard]] std::string get_id() const {
+    std::string get_id() const {
         return id;
     }
 
