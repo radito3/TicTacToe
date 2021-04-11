@@ -1,8 +1,0 @@
-#ifndef TICTACTOE_EVENTDISPATCHER_H
-#define TICTACTOE_EVENTDISPATCHER_H
-
-class EventDispatcher {
-
-};
-
-#endif //TICTACTOE_EVENTDISPATCHER_H

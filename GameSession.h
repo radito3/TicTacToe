@@ -7,10 +7,15 @@
 #include <functional>
 #include "GameEventQueue.h"
 #include "DisplayWriter.h"
+#include "DisplayWriterWorker.h"
+#include "InputReaderWorker.h"
+#include "GamePlayerSwitcher.h"
+#include "GameEndConditionChecker.h"
 #include "InputReader.h"
 #include "Player.h"
 #include "MatrixCell.h"
-#include "PlayerMovePlaceholderEvent.h"
+#include "events/WriteMatrixEvent.h"
+#include "events/WritePlayerPlaceholderEvent.h"
 
 class GameSession {
     GameEventQueue event_queue;
@@ -42,14 +47,22 @@ class GameSession {
         return player_turn == 0 ? player1 : player2;
     }
 
+    void switch_current_player() {
+        player_turn = player_turn == 0 ? 1 : 0;
+    }
+
     void initiate() {
-        //boot up threads (display writer thread, input reader thread, event handlers dispatcher thread [, timeout handling thread])
-        //send event for writing the game matrix
-        //send event for writing the current player's placeholder
+        game_threads.emplace_back(DisplayWriterWorker(event_queue, display_writer, game_board));
+        game_threads.emplace_back(InputReaderWorker(event_queue, input_reader,
+                                                    [this] { return get_current_player(); },
+                                                    [this] { return get_current_coordinate(); }));
+        game_threads.emplace_back(GameEndConditionChecker(event_queue, game_board));
+        game_threads.emplace_back(GamePlayerSwitcher(event_queue, [this] { switch_current_player(); }));
     }
 
     void send_initial_events() {
-
+        event_queue.submit_event(new WriteMatrixEvent);
+        event_queue.submit_event(new WritePlayerPlaceholderEvent(get_current_player(), get_current_coordinate()));
     }
 
 public:
@@ -68,6 +81,7 @@ public:
     ~GameSession() {
         delete display_writer;
         delete input_reader;
+        event_queue.clear();
     }
 
     void play() {

@@ -4,7 +4,6 @@
 #include "GameEvent.h"
 
 class WriteMatrixEvent : public GameEvent {
-
 public:
 
     GameEventType get_event_type() const noexcept override {

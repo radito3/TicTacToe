@@ -30,6 +30,14 @@ public:
         (display_writer->*placeholder_writer_func)(coord);
     }
 
+    bool operator==(const Player &rhs) const {
+        return id == rhs.id;
+    }
+
+    bool operator!=(const Player &rhs) const {
+        return !(rhs == *this);
+    }
+
 };
 
 #endif //TICTACTOE_PLAYER_H

@@ -4,7 +4,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
-#include "GameEvent.h"
+#include "events/GameEvent.h"
 
 class GameEventQueue {
     std::queue<GameEvent*> queue;
@@ -30,7 +30,16 @@ public:
         }
     }
 
-    const GameEvent* peek_next_event() {
+    void clear() {
+        lock_t lock(q_mutex);
+        while (!queue.empty()) {
+            auto* ev = queue.front();
+            delete ev;
+            queue.pop();
+        }
+    }
+
+    GameEvent* peek_next_event() {
         lock_t lock(q_mutex);
         empty_cond.wait(lock, [&]() { return !queue.empty(); });
 

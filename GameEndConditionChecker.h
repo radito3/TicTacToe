@@ -1,27 +1,31 @@
 #ifndef TICTACTOE_GAMEENDCONDITIONCHECKER_H
 #define TICTACTOE_GAMEENDCONDITIONCHECKER_H
 
-class GameEndConditionChecker {
+#include <vector>
+#include "Worker.h"
+#include "MatrixCell.h"
+#include "events/GameSwitchPlayerEvent.h"
+#include "events/GameCheckEndConditionEvent.h"
 
+class GameEndConditionChecker : public Worker {
+    std::vector<MatrixCell>& game_board;
 
 public:
+    GameEndConditionChecker(GameEventQueue &eventQueue, std::vector<MatrixCell> &gameBoard)
+            : Worker(eventQueue), game_board(gameBoard) {}
 
-    void operator()() {
-        while (true) {
-            std::unique_lock<std::mutex> lock(mutex);
-            cond.wait(lock);
-
-            auto* event = event_queue.peek_next_event();
-            if (event->get_event_type() == GameEventType::SHUTDOWN) {
-                break;
-            }
-
-            handle_event(event);
-
-            event_queue.pop_event();
-            delete event;
-        }
+    void handle_event(GameEvent *event) override {
+        auto* ev = dynamic_cast<GameCheckEndConditionEvent*>(event);
+        auto& current_player = ev->get_current_player();
+        //check for victory
+        //check for deadlock
+        event_queue.submit_event(new GameSwitchPlayerEvent);
     }
+
+    std::unordered_set<GameEventType> get_supported_event_types() const override {
+        return { GameEventType::CHECK_FOR_END_CONDITION };
+    }
+
 };
 
 #endif //TICTACTOE_GAMEENDCONDITIONCHECKER_H
