@@ -2,42 +2,22 @@
 #define TICTACTOE_PLAYER_H
 
 #include <utility>
-#include "DisplayWriter.h"
+#include "Symbol.h"
 
 class Player {
-public:
-    typedef void(DisplayWriter::*symbol_writer)(const Coordinate&) const;
-    typedef void(DisplayWriter::*placeholder_writer)(const Coordinate&) const;
-
-private:
     std::string id;
-    symbol_writer symbol_writer_func;
-    placeholder_writer placeholder_writer_func;
+    Symbol symbol;
 
 public:
-    Player(std::string id, symbol_writer s_writer, placeholder_writer p_writer) :
-        id(std::move(id)), symbol_writer_func(s_writer), placeholder_writer_func(p_writer) {}
+    Player(std::string id, Symbol symbol) : id(std::move(id)), symbol(symbol) {}
 
     std::string get_id() const {
         return id;
     }
 
-    void write_player_symbol(const DisplayWriter* display_writer, const Coordinate& coord) const {
-        (display_writer->*symbol_writer_func)(coord);
+    Symbol get_symbol() const {
+        return symbol;
     }
-
-    void writer_player_placeholder(const DisplayWriter* display_writer, const Coordinate& coord) const {
-        (display_writer->*placeholder_writer_func)(coord);
-    }
-
-    bool operator==(const Player &rhs) const {
-        return id == rhs.id;
-    }
-
-    bool operator!=(const Player &rhs) const {
-        return !(rhs == *this);
-    }
-
 };
 
 #endif //TICTACTOE_PLAYER_H

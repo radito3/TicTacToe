@@ -13,7 +13,7 @@ public:
 
     void operator()() {
         while (true) {
-            auto* event = event_queue.peek_next_event();
+            auto* event = event_queue.get_next_event();
             if (event->get_event_type() == GameEventType::SHUTDOWN) {
                 break;
             }

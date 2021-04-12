@@ -2,9 +2,10 @@
 #define TICTACTOE_CONSOLEWRITER_H
 
 #include <iostream>
-#include <cstring>
+#include <array>
 #include "DisplayWriter.h"
 #include "AsciiEscapeCodes.h"
+#include "Symbol.h"
 
 class ConsoleWriter : public DisplayWriter {
 
@@ -17,11 +18,23 @@ class ConsoleWriter : public DisplayWriter {
         printf(AsciiEscapeCodes::MoveToPos, line, column);
     }
 
-    [[nodiscard]] std::pair<int, int> determine_start_coordinates(const Coordinate& coord) const noexcept {
+    static std::array<const char*, 3> get_circle_elements() {
+        return {"  _  ",
+                "/   \\",
+                "\\ _ /"};
+    }
+
+    static std::array<const char*, 3> get_cross_elements() {
+        return {" \\ / ",
+                "  X  ",
+                " / \\ "};
+    }
+
+    std::pair<int, int> determine_start_coordinates(const Coordinate& coord) const noexcept {
         int coord_x = coord.x;
         int coord_y = coord.y;
-        int start_column = coord_x > 0 ? coord_x * symbols_per_column + 2 : 0;
-        int start_line = coord_y > 0 ? coord_y * symbols_per_line + 1 : 0;
+        int start_column = coord_x > 0 ? (coord_x * symbols_per_column) + coord_x + 1 : 0;
+        int start_line = coord_y > 0 ? (coord_y * symbols_per_line) + coord_y : 0;
         return { start_column, start_line };
     }
 
@@ -53,44 +66,33 @@ public:
         }
     }
 
-    void write_cross(const Coordinate &coordinate) const override {
+    void clear_cell_at(const Coordinate& coordinate) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
+        auto* str = "     ";
 
-        move_cursor_to(start_line + gitBashLineOffset, start_column);
-        std::cout << " \\ / ";
-        move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
-        std::cout << "  X  ";
-        move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
-        std::cout << " / \\ ";
+        for (int i = 0; i < 3; ++i) {
+            move_cursor_to(start_line + gitBashLineOffset + i, start_column);
+            std::cout << str;
+        }
     }
 
-    void write_cross_placeholder(const Coordinate& coordinate) const override {
+    void write_symbol(Symbol symbol, const Coordinate& coordinate) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
-        int line_offset = coordinate.y == 0 ? 1 : coordinate.y;
-        int column_offset = coordinate.x == 0 ? 3 : coordinate.x + 1;
+        std::array<const char*, 3> symbol_elements = symbol == Symbol::CIRCLE ? get_circle_elements() : get_cross_elements();
 
-        move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + column_offset);
-        std::cout << 'x';
+        for (int i = 0; i < 3; ++i) {
+            move_cursor_to(start_line + gitBashLineOffset + i, start_column);
+            std::cout << symbol_elements[i];
+        }
     }
 
-    void write_circle(const Coordinate &coordinate) const override {
+    void write_placeholder_for(Symbol symbol, const Coordinate& coordinate) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
+        int column_offset = coordinate.x == 0 ? 3 : 2;
+        auto _symbol = symbol == Symbol::CIRCLE ? 'o' : 'x';
 
-        move_cursor_to(start_line + gitBashLineOffset, start_column);
-        std::cout << "  _  ";
-        move_cursor_to(start_line + gitBashLineOffset + 1, start_column);
-        std::cout << "/   \\";
-        move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
-        std::cout << "\\ _ /";
-    }
-
-    void write_circle_placeholder(const Coordinate& coordinate) const override {
-        auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
-        int line_offset = coordinate.y == 0 ? 1 : coordinate.y;
-        int column_offset = coordinate.x == 0 ? 3 : coordinate.x + 1;
-
-        move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + column_offset);
-        std::cout << 'o';
+        move_cursor_to(start_line + gitBashLineOffset + 1, start_column + column_offset);
+        std::cout << _symbol;
     }
 
     void write_stroke(const Coordinate &coordinate, StrokeDirection direction) const override {
@@ -102,7 +104,8 @@ public:
                     if (line_offset == 3 || line_offset == 7) {
                         continue;
                     }
-                    move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + 2);
+                    int column_offset = coordinate.x == 0 ? 3 : 2;
+                    move_cursor_to(start_line + gitBashLineOffset + line_offset, start_column + column_offset);
                     std::cout << '|';
                 }
                 break;
@@ -137,29 +140,39 @@ public:
                 std::cout << "\\\\";
                 break;
             case StrokeDirection::DIAGONAL_LEFT:
-                move_cursor_to(start_line + gitBashLineOffset, start_column + 5);
+                move_cursor_to(start_line + gitBashLineOffset, start_column + 4);
                 std::cout << '/';
-                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 3);
+                move_cursor_to(start_line + gitBashLineOffset + 1, start_column + 2);
                 std::cout << "//";
-                move_cursor_to(start_line + gitBashLineOffset + 2, start_column + 1);
+                move_cursor_to(start_line + gitBashLineOffset + 2, start_column);
                 std::cout << "//";
 
-                move_cursor_to(start_line + gitBashLineOffset + 4, start_column - 1);
+                move_cursor_to(start_line + gitBashLineOffset + 4, start_column - 2);
                 std::cout << '/';
-                move_cursor_to(start_line + gitBashLineOffset + 5, start_column - 3);
+                move_cursor_to(start_line + gitBashLineOffset + 5, start_column - 4);
                 std::cout << "//";
-                move_cursor_to(start_line + gitBashLineOffset + 6, start_column - 5);
+                move_cursor_to(start_line + gitBashLineOffset + 6, start_column - 6);
                 std::cout << "//";
 
-                move_cursor_to(start_line + gitBashLineOffset + 8, start_column - 7);
+                move_cursor_to(start_line + gitBashLineOffset + 8, start_column - 8);
                 std::cout << '/';
-                move_cursor_to(start_line + gitBashLineOffset + 9, start_column - 9);
+                move_cursor_to(start_line + gitBashLineOffset + 9, start_column - 10);
                 std::cout << "//";
-                move_cursor_to(start_line + gitBashLineOffset + 10, start_column - 10);
+                move_cursor_to(start_line + gitBashLineOffset + 10, start_column - 12);
                 std::cout << "//";
                 break;
         }
 
+    }
+
+    void write_victory_msg_for(const std::string &player_id) const override {
+        move_cursor_to(gitBashLineOffset, 22);
+        std::cout << "Player \"" << player_id << "\" is victorious";
+    }
+
+    void write_deadlock_msg() const override {
+        move_cursor_to(gitBashLineOffset, 22);
+        std::cout << "Dead end! No player is victorious";
     }
 };
 

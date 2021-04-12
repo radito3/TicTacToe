@@ -1,14 +1,14 @@
-#ifndef TICTACTOE_GAMECHECKENDCONDITIONEVENT_H
-#define TICTACTOE_GAMECHECKENDCONDITIONEVENT_H
+#ifndef TICTACTOE_CHECKENDCONDITIONEVENT_H
+#define TICTACTOE_CHECKENDCONDITIONEVENT_H
 
 #include "GameEvent.h"
 #include "../Player.h"
 
-class GameCheckEndConditionEvent : public GameEvent {
+class CheckEndConditionEvent : public GameEvent {
     const Player& current_player;
 
 public:
-    explicit GameCheckEndConditionEvent(const Player &currentPlayer) : current_player(currentPlayer) {}
+    explicit CheckEndConditionEvent(const Player &currentPlayer) : current_player(currentPlayer) {}
 
     GameEventType get_event_type() const noexcept override {
         return GameEventType::CHECK_FOR_END_CONDITION;
@@ -19,4 +19,4 @@ public:
     }
 };
 
-#endif //TICTACTOE_GAMECHECKENDCONDITIONEVENT_H
+#endif //TICTACTOE_CHECKENDCONDITIONEVENT_H

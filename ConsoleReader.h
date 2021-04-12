@@ -2,6 +2,8 @@
 #define TICTACTOE_CONSOLEREADER_H
 
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <cstdio>
 #include "InputReader.h"
 #include "AsciiEscapeCodes.h"
@@ -9,9 +11,6 @@
 class ConsoleReader : public InputReader {
 
     const int gitBashLineOffset = 4;
-
-    const int symbols_per_line = 3;
-    const int symbols_per_column = 5;
 
     static void move_cursor_to(int line, int column) {
         printf(AsciiEscapeCodes::MoveToPos, line, column);
@@ -36,11 +35,10 @@ public:
 
     input_t read() const override {
         input_t result{.move_direction = MoveDirection::INVALID};
-        //move cursor to the side before waiting for input
+        move_cursor_to(gitBashLineOffset, 22);
         char ch;
         while (std::cin >> ch) {
-            //reset cursor position
-
+            move_cursor_to(gitBashLineOffset, 22);
             if (ch == 'q') {
                 result.set_symbol = true;
                 break;
@@ -50,9 +48,10 @@ public:
                 result.move_direction = move_dir;
                 break;
             }
-            //move cursor
             std::cout << "Invalid input";
-            //reset cursor
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            move_cursor_to(gitBashLineOffset, 22);
+            std::cout << "             ";
         }
         return result;
     }

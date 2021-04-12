@@ -4,8 +4,8 @@
 
 int main() {
     //these two statements will be called by the server
-    GameSession session(Player("1", &DisplayWriter::write_circle, &DisplayWriter::write_circle_placeholder),
-                        Player("2", &DisplayWriter::write_cross, &DisplayWriter::write_cross_placeholder),
+    GameSession session(Player("1", Symbol::CIRCLE),
+                        Player("2", Symbol::CROSS),
                         new ConsoleWriter, new ConsoleReader);
     session.play();
 

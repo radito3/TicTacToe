@@ -3,13 +3,14 @@
 
 struct MatrixCell {
     enum class State {
-        EMPTY, PLAYER_1_SYMBOL, PLAYER_2_SYMBOL, PLAYER_1_PLACEHOLDER, PLAYER_2_PLACEHOLDER
+        EMPTY, CROSS, CIRCLE, CROSS_PLACEHOLDER, CIRCLE_PLACEHOLDER
     };
 
     State state;
     bool is_current;
 
-    explicit MatrixCell(State state, bool is_current = false) : state(state), is_current(is_current) {}
+    explicit MatrixCell(State state = State::EMPTY, bool is_current = false)
+            : state(state), is_current(is_current) {}
 
 };
 

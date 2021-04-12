@@ -39,7 +39,7 @@ public:
         }
     }
 
-    GameEvent* peek_next_event() {
+    GameEvent* get_next_event() {
         lock_t lock(q_mutex);
         empty_cond.wait(lock, [&]() { return !queue.empty(); });
 

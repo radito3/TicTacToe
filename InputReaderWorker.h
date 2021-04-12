@@ -9,6 +9,7 @@
 
 class InputReaderWorker : public Worker {
     InputReader* input_reader;
+    //FIXME these functions return bad addresses
     std::function<const Player&()> get_current_player_func;
     std::function<Coordinate()> get_current_coord_func;
 
@@ -21,12 +22,12 @@ public:
                       get_current_coord_func(std::move(getCurrentCoordFunc)) {}
 
     void handle_event(GameEvent *event) override {
-        //loop until player action is legal
         input_t input = input_reader->read();
         if (input.set_symbol) {
             event_queue.submit_event(new WritePlayerSymbolEvent(get_current_player_func(), get_current_coord_func()));
+            return;
         }
-        //...
+        event_queue.submit_event(new MovePlayerPlaceholderEvent(get_current_player_func(), get_current_coord_func(), input.move_direction));
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {
