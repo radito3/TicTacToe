@@ -12,12 +12,12 @@ public:
     explicit Worker(GameEventQueue &eventQueue) : event_queue(eventQueue) {}
 
     void operator()() {
+        auto supported_event_types = get_supported_event_types();
         while (true) {
             auto* event = event_queue.get_next_event();
             if (event->get_event_type() == GameEventType::SHUTDOWN) {
                 break;
             }
-            auto supported_event_types = get_supported_event_types();
             if (supported_event_types.find(event->get_event_type()) != supported_event_types.end()) {
                 event_queue.pop_event();
                 handle_event(event);

@@ -89,12 +89,6 @@ public:
             th.join();
         }
     }
-
-    //[in a later implementation stage]
-    //each player turn will have a 1 minute timeout
-    //30 sec after the beginning of a turn, if there hasn't been any input, a popup will appear
-    // "your turn will timeout due to inactivity" (console version will be a blinking red symbol)
-    //if no action is taken, and the whole minute expires, the turns switch
 };
 
 #endif //TICTACTOE_GAMESESSION_H
