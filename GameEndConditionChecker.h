@@ -56,9 +56,11 @@ class GameEndConditionChecker : public Worker {
     }
 
     bool is_different_pair(int index, int increment) const {
-        return game_board[index].state != MatrixCell::State::EMPTY ||
-                game_board[index + increment].state != MatrixCell::State::EMPTY &&
-                game_board[index].state != game_board[index + increment].state;
+        if (game_board[index].state == MatrixCell::State::EMPTY ||
+            game_board[index + increment].state == MatrixCell::State::EMPTY) {
+            return false;
+        }
+        return game_board[index].state != game_board[index + increment].state;
     }
 
     //see https://en.cppreference.com/w/cpp/language/fold for details
@@ -106,7 +108,7 @@ public:
 
     void handle_event(GameEvent *event) override {
         auto* ev = dynamic_cast<CheckEndConditionEvent*>(event);
-        auto& current_player = ev->get_current_player();
+        auto current_player = ev->get_current_player();
 
         auto write_stroke_event = check_for_player_victory(current_player);
         if (write_stroke_event != nullptr) {

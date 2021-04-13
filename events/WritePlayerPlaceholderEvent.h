@@ -4,22 +4,22 @@
 #include "GameEvent.h"
 
 class WritePlayerPlaceholderEvent : public GameEvent {
-    const Player& player;
-    const Coordinate& coordinate;
+    Player player;
+    Coordinate coordinate;
 
 public:
-    WritePlayerPlaceholderEvent(const Player &player, const Coordinate &coordinate)
+    WritePlayerPlaceholderEvent(Player player, const Coordinate &coordinate)
             : player(player), coordinate(coordinate) {}
 
     GameEventType get_event_type() const noexcept override {
         return GameEventType::WRITE_PLAYER_PLACEHOLDER;
     }
 
-    const Player &get_player() const {
+    Player get_player() const {
         return player;
     }
 
-    const Coordinate &get_coordinate() const {
+    Coordinate get_coordinate() const {
         return coordinate;
     }
 };

@@ -34,26 +34,25 @@ class ConsoleReader : public InputReader {
 public:
 
     input_t read() const override {
-        input_t result{.move_direction = MoveDirection::INVALID};
         move_cursor_to(gitBashLineOffset, 22);
         char ch;
         while (std::cin >> ch) {
             move_cursor_to(gitBashLineOffset, 22);
             if (ch == 'q') {
-                result.set_symbol = true;
-                break;
+                return input_t(true);
             }
             MoveDirection move_dir = parse_move_direction(ch);
             if (move_dir != MoveDirection::INVALID) {
-                result.move_direction = move_dir;
-                break;
+                return input_t(move_dir);
             }
-            std::cout << "Invalid input";
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
+            std::cerr << "Invalid input";
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
+            std::cerr << "             ";
             move_cursor_to(gitBashLineOffset, 22);
-            std::cout << "             ";
         }
-        return result;
+        return input_t(false);
     }
 };
 

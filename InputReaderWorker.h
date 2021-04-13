@@ -9,12 +9,12 @@
 
 class InputReaderWorker : public Worker {
     InputReader* input_reader;
-    std::function<const Player&()> get_current_player_func;
+    std::function<Player()> get_current_player_func;
     std::function<Coordinate()> get_current_coord_func;
 
 public:
     InputReaderWorker(GameEventQueue &eventQueue, InputReader *inputReader,
-                      std::function<const Player &()> getCurrentPlayerFunc,
+                      std::function<Player()> getCurrentPlayerFunc,
                       std::function<Coordinate()> getCurrentCoordFunc)
                       : Worker(eventQueue), input_reader(inputReader),
                       get_current_player_func(std::move(getCurrentPlayerFunc)),

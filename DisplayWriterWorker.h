@@ -50,7 +50,7 @@ class DisplayWriterWorker : public Worker {
                 return { new_x, current.y };
             }
             default:
-                return { -1, -1 };
+                throw std::runtime_error("Invalid move direction");
         }
     }
 
@@ -62,7 +62,7 @@ class DisplayWriterWorker : public Worker {
                 }
             }
         }
-        return { -1, -1 };
+        throw std::runtime_error("Invalid game state");
     }
 
     void clear_active_cells() {
@@ -79,7 +79,28 @@ class DisplayWriterWorker : public Worker {
                 }
             }
         }
-        return 0;
+        throw std::runtime_error("Invalid game state");
+    }
+
+    void move_player_placeholder(MovePlayerPlaceholderEvent* move_placeholder_ev) {
+        if (!is_movement_legal(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection())) {
+            event_queue.submit_event(new WaitPlayerInputEvent);
+            return;
+        }
+        display_writer->clear_cell_at(get_current_coordinate());
+
+        auto current_coord = get_current_coordinate();
+        game_board[current_coord.y * 3 + current_coord.x].state = MatrixCell::State::EMPTY;
+
+        clear_active_cells();
+
+        auto new_coord = get_new_coordinate(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection());
+        game_board[new_coord.y * 3 + new_coord.x].is_current = true;
+        game_board[new_coord.y * 3 + new_coord.x].state = get_placeholder(move_placeholder_ev->getPlayer());
+
+        display_writer->write_placeholder_for(move_placeholder_ev->getPlayer().get_symbol(), new_coord);
+
+        event_queue.submit_event(new WaitPlayerInputEvent);
     }
 
     void write_player_symbol(WritePlayerSymbolEvent* write_symbol_ev) {
@@ -108,19 +129,9 @@ public:
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch"
         switch (event->get_event_type()) {
-            case GameEventType::MOVE_PLAYER_PLACEHOLDER: {
-                auto *move_placeholder_ev = dynamic_cast<MovePlayerPlaceholderEvent*>(event);
-                if (!is_movement_legal(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection())) {
-                    event_queue.submit_event(new WaitPlayerInputEvent);
-                    break;
-                }
-                display_writer->clear_cell_at(get_current_coordinate());
-                clear_active_cells();
-                auto new_coord = get_new_coordinate(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection());
-                game_board[new_coord.y * 3 + new_coord.x].is_current = true;
-                display_writer->write_placeholder_for(move_placeholder_ev->getPlayer().get_symbol(), new_coord);
+            case GameEventType::MOVE_PLAYER_PLACEHOLDER:
+                move_player_placeholder(dynamic_cast<MovePlayerPlaceholderEvent*>(event));
                 break;
-            }
             case GameEventType::WRITE_PLAYER_SYMBOL:
                 write_player_symbol(dynamic_cast<WritePlayerSymbolEvent*>(event));
                 break;
@@ -129,8 +140,12 @@ public:
                 break;
             case GameEventType::WRITE_PLAYER_PLACEHOLDER: {
                 auto *write_placeholder_ev = dynamic_cast<WritePlayerPlaceholderEvent*>(event);
-                display_writer->write_placeholder_for(write_placeholder_ev->get_player().get_symbol(),
-                                                      write_placeholder_ev->get_coordinate());
+                auto player = write_placeholder_ev->get_player();
+                auto coord = write_placeholder_ev->get_coordinate();
+
+                game_board[coord.y * 3 + coord.x].state = get_placeholder(player);
+                display_writer->write_placeholder_for(player.get_symbol(), coord);
+
                 event_queue.submit_event(new WaitPlayerInputEvent);
                 break;
             }

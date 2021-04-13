@@ -9,12 +9,12 @@
 
 class GamePlayerSwitcher : public Worker {
     std::function<void()> switch_player_func;
-    std::function<const Player&()> get_current_player_func;
+    std::function<Player()> get_current_player_func;
     std::function<Coordinate()> get_current_coord_func;
 
 public:
     GamePlayerSwitcher(GameEventQueue &eventQueue, std::function<void()> switchPlayerFunc,
-                       std::function<const Player &()> getCurrentPlayerFunc,
+                       std::function<Player()> getCurrentPlayerFunc,
                        std::function<Coordinate()> getCurrentCoordFunc)
                        : Worker(eventQueue),
                        switch_player_func(std::move(switchPlayerFunc)),

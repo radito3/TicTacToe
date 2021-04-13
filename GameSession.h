@@ -36,19 +36,15 @@ class GameSession {
                 }
             }
         }
-        return { -1, -1 };
+        throw std::runtime_error("Invalid game state");
     }
 
-    const Player& get_current_player() const {
+    Player get_current_player() const {
         return player_turn == 0 ? player1 : player2;
     }
 
     void switch_current_player() {
         player_turn = player_turn == 0 ? 1 : 0;
-    }
-
-    static MatrixCell::State get_placeholder(const Player& player) {
-        return player.get_symbol() == Symbol::CIRCLE ? MatrixCell::State::CIRCLE_PLACEHOLDER : MatrixCell::State::CROSS_PLACEHOLDER;
     }
 
     void initiate() {
@@ -78,7 +74,6 @@ public:
     {
         player_turn = std::mt19937(std::random_device()())() % 1;
         game_board.front().is_current = true;
-        game_board.front().state = get_placeholder(get_current_player());
     }
 
     ~GameSession() {

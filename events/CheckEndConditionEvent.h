@@ -5,16 +5,16 @@
 #include "../Player.h"
 
 class CheckEndConditionEvent : public GameEvent {
-    const Player& current_player;
+    Player current_player;
 
 public:
-    explicit CheckEndConditionEvent(const Player &currentPlayer) : current_player(currentPlayer) {}
+    explicit CheckEndConditionEvent(Player currentPlayer) : current_player(currentPlayer) {}
 
     GameEventType get_event_type() const noexcept override {
         return GameEventType::CHECK_FOR_END_CONDITION;
     }
 
-    const Player &get_current_player() const {
+    Player get_current_player() const {
         return current_player;
     }
 };
