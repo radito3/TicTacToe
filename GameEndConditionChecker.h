@@ -70,12 +70,13 @@ class GameEndConditionChecker : public Worker {
     }
 
     bool is_deadlock() const {
-        bool rows, cols, right_diag, left_diag;
+        int rows = 0, cols = 0;
+        bool right_diag = false, left_diag = false;
         //rows
         for (int row = 0; row < 3; ++row) {
             if (is_different_pair(row * 3, 1) ||
                     is_different_pair((row * 3) + 1, 1)) {
-                rows = true;
+                rows++;
             }
         }
 
@@ -83,7 +84,7 @@ class GameEndConditionChecker : public Worker {
         for (int col = 0; col < 3; ++col) {
             if (is_different_pair(col, 3) ||
                     is_different_pair(col + 3, 3)) {
-                cols = true;
+                cols++;
             }
         }
 
@@ -99,7 +100,7 @@ class GameEndConditionChecker : public Worker {
             left_diag = true;
         }
 
-        return all(rows, cols, right_diag, left_diag);
+        return all(rows == 3, cols == 3, right_diag, left_diag);
     }
 
 public:
