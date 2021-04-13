@@ -47,16 +47,19 @@ class GameSession {
         player_turn = player_turn == 0 ? 1 : 0;
     }
 
-    //TODO either don't use lambdas or make the method references work correctly
+    static MatrixCell::State get_placeholder(const Player& player) {
+        return player.get_symbol() == Symbol::CIRCLE ? MatrixCell::State::CIRCLE_PLACEHOLDER : MatrixCell::State::CROSS_PLACEHOLDER;
+    }
+
     void initiate() {
         game_threads.emplace_back(DisplayWriterWorker(event_queue, display_writer, game_board));
         game_threads.emplace_back(InputReaderWorker(event_queue, input_reader,
-                                                    [this] { return get_current_player(); },
-                                                    [this] { return get_current_coordinate(); }));
+                                                    std::bind(&GameSession::get_current_player, this),
+                                                    std::bind(&GameSession::get_current_coordinate, this)));
         game_threads.emplace_back(GameEndConditionChecker(event_queue, game_board));
-        game_threads.emplace_back(GamePlayerSwitcher(event_queue, [this] { switch_current_player(); },
-                                                     [this] { return get_current_player(); },
-                                                     [this] { return get_current_coordinate(); }));
+        game_threads.emplace_back(GamePlayerSwitcher(event_queue, std::bind(&GameSession::switch_current_player, this),
+                                                     std::bind(&GameSession::get_current_player, this),
+                                                     std::bind(&GameSession::get_current_coordinate, this)));
     }
 
     void send_initial_events() {
@@ -75,6 +78,7 @@ public:
     {
         player_turn = std::mt19937(std::random_device()())() % 1;
         game_board.front().is_current = true;
+        game_board.front().state = get_placeholder(get_current_player());
     }
 
     ~GameSession() {

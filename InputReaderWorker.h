@@ -9,7 +9,6 @@
 
 class InputReaderWorker : public Worker {
     InputReader* input_reader;
-    //FIXME these functions return bad addresses
     std::function<const Player&()> get_current_player_func;
     std::function<Coordinate()> get_current_coord_func;
 

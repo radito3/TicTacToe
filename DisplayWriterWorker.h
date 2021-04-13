@@ -83,7 +83,7 @@ class DisplayWriterWorker : public Worker {
     }
 
     void write_player_symbol(WritePlayerSymbolEvent* write_symbol_ev) {
-        auto& player = write_symbol_ev->get_current_player();
+        auto player = write_symbol_ev->get_current_player();
         auto coord = write_symbol_ev->get_current_coord();
         int matrix_index = coord.y * 3 + coord.x;
 

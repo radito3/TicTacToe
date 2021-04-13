@@ -10,18 +10,18 @@ class MovePlayerPlaceholderEvent : public GameEvent {
     MoveDirection direction;
 
 public:
-    MovePlayerPlaceholderEvent(Player player, const Coordinate &startingCoord, const MoveDirection &direction)
+    MovePlayerPlaceholderEvent(Player player, Coordinate startingCoord, MoveDirection direction)
             : player(std::move(player)), starting_coord(startingCoord), direction(direction) {}
 
     GameEventType get_event_type() const noexcept override {
         return GameEventType::MOVE_PLAYER_PLACEHOLDER;
     }
 
-    const Player &getPlayer() const {
+    Player getPlayer() const {
         return player;
     }
 
-    const Coordinate &getStartingCoord() const {
+    Coordinate getStartingCoord() const {
         return starting_coord;
     }
 
