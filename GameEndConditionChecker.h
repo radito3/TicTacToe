@@ -2,14 +2,14 @@
 #define TICTACTOE_GAMEENDCONDITIONCHECKER_H
 
 #include <vector>
-#include <valarray>
+#include <algorithm>
 #include "Worker.h"
 #include "MatrixCell.h"
 #include "events/SwitchPlayerEvent.h"
 #include "events/WriteStrokeEvent.h"
 #include "events/CheckEndConditionEvent.h"
 #include "events/WriteVictoryMessageEvent.h"
-#include "events/WriteDeadlockMessageEvent.h"
+#include "events/WriteDrawMessageEvent.h"
 
 class GameEndConditionChecker : public Worker {
     std::vector<MatrixCell>& game_board;
@@ -55,56 +55,14 @@ class GameEndConditionChecker : public Worker {
         return nullptr;
     }
 
-    bool is_different_pair(int index, int increment) const {
-        if (game_board[index].state == MatrixCell::State::EMPTY ||
-            game_board[index + increment].state == MatrixCell::State::EMPTY) {
-            return false;
-        }
-        return game_board[index].state != game_board[index + increment].state;
-    }
-
-    //see https://en.cppreference.com/w/cpp/language/fold for details
-    template<typename... Args>
-    bool all(Args... args) const {
-        return (... && args);
-    }
-
-    bool is_deadlock() const {
-        int rows = 0, cols = 0;
-        bool right_diag = false, left_diag = false;
-        //rows
-        for (int row = 0; row < 3; ++row) {
-            if (is_different_pair(row * 3, 1) ||
-                    is_different_pair((row * 3) + 1, 1)) {
-                rows++;
-            }
-        }
-
-        //columns
-        for (int col = 0; col < 3; ++col) {
-            if (is_different_pair(col, 3) ||
-                    is_different_pair(col + 3, 3)) {
-                cols++;
-            }
-        }
-
-        //right diagonal
-        if (is_different_pair(0, 4) ||
-                is_different_pair(4, 4)) {
-            right_diag = true;
-        }
-
-        //left diagonal
-        if (is_different_pair(2, 2) ||
-                is_different_pair(4, 2)) {
-            left_diag = true;
-        }
-
-        return all(rows == 3, cols == 3, right_diag, left_diag);
+    bool is_draw() const {
+        return std::none_of(game_board.cbegin(), game_board.cend(), [](auto& cell) {
+            return cell.state == MatrixCell::State::EMPTY;
+        });
     }
 
 public:
-    GameEndConditionChecker(GameEventQueue &eventQueue, std::vector<MatrixCell> &gameBoard)
+    GameEndConditionChecker(GameEventQueue& eventQueue, std::vector<MatrixCell>& gameBoard)
             : Worker(eventQueue), game_board(gameBoard) {}
 
     void handle_event(GameEvent *event) override {
@@ -118,8 +76,8 @@ public:
             return;
         }
 
-        if (is_deadlock()) {
-            event_queue.submit_event(new WriteDeadlockMessageEvent);
+        if (is_draw()) {
+            event_queue.submit_event(new WriteDrawMessageEvent);
             return;
         }
         event_queue.submit_event(new SwitchPlayerEvent);

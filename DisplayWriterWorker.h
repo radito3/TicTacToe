@@ -79,7 +79,7 @@ class DisplayWriterWorker : public Worker {
                 }
             }
         }
-        throw std::runtime_error("Invalid game state");
+        return -1;
     }
 
     void move_player_placeholder(MovePlayerPlaceholderEvent* move_placeholder_ev) {
@@ -116,7 +116,10 @@ class DisplayWriterWorker : public Worker {
         display_writer->write_symbol(player.get_symbol(), coord);
 
         clear_active_cells();
-        game_board[get_next_available_pos(coord)].is_current = true;
+        int next_avail_pos = get_next_available_pos(coord);
+        if (next_avail_pos != -1) {
+            game_board[next_avail_pos].is_current = true;
+        }
 
         event_queue.submit_event(new CheckEndConditionEvent(player));
     }
@@ -126,8 +129,6 @@ public:
             : Worker(eventQueue), display_writer(displayWriter), game_board(gameBoard) {}
 
     void handle_event(GameEvent *event) override {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wswitch"
         switch (event->get_event_type()) {
             case GameEventType::MOVE_PLAYER_PLACEHOLDER:
                 move_player_placeholder(dynamic_cast<MovePlayerPlaceholderEvent*>(event));
@@ -160,18 +161,17 @@ public:
                 event_queue.submit_event(new ShutdownEvent);
                 break;
             }
-            case GameEventType::WRITE_DEADLOCK_MSG:
-                display_writer->write_deadlock_msg();
+            case GameEventType::WRITE_DRAW_MSG:
+                display_writer->write_draw_msg();
                 event_queue.submit_event(new ShutdownEvent);
                 break;
         }
-#pragma clang diagnostic pop
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {
-        return { GameEventType::WRITE_MATRIX, GameEventType::WRITE_PLAYER_PLACEHOLDER,
-                 GameEventType::WRITE_PLAYER_SYMBOL, GameEventType::MOVE_PLAYER_PLACEHOLDER,
-                 GameEventType::WRITE_STROKE, GameEventType::WRITE_DEADLOCK_MSG, GameEventType::WRITE_VICTORY_MSG };
+        return {GameEventType::WRITE_MATRIX, GameEventType::WRITE_PLAYER_PLACEHOLDER,
+                GameEventType::WRITE_PLAYER_SYMBOL, GameEventType::MOVE_PLAYER_PLACEHOLDER,
+                GameEventType::WRITE_STROKE, GameEventType::WRITE_DRAW_MSG, GameEventType::WRITE_VICTORY_MSG };
     }
 
 };

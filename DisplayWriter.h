@@ -21,7 +21,7 @@ public:
 
     virtual void write_victory_msg_for(const std::string &) const = 0;
 
-    virtual void write_deadlock_msg() const = 0;
+    virtual void write_draw_msg() const = 0;
 
 };
 

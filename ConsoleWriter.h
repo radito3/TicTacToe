@@ -170,9 +170,9 @@ public:
         std::cout << "Player \"" << player_id << "\" is victorious";
     }
 
-    void write_deadlock_msg() const override {
+    void write_draw_msg() const override {
         move_cursor_to(gitBashLineOffset, 22);
-        std::cout << "Dead end! No player is victorious";
+        std::cout << "Draw";
     }
 };
 
