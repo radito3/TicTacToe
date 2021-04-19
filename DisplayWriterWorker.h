@@ -2,11 +2,12 @@
 #define TICTACTOE_DISPLAYWRITERWORKER_H
 
 #include <vector>
-#include "InvalidPath.h"
+#include <chrono>
+#include <thread>
 #include "Worker.h"
-#include "Windows.h"
 #include "DisplayWriter.h"
 #include "MatrixCell.h"
+#include "AsciiEscapeCodes.h"
 #include "events/WritePlayerSymbolEvent.h"
 #include "events/WritePlayerPlaceholderEvent.h"
 #include "events/MovePlayerPlaceholderEvent.h"
@@ -87,23 +88,14 @@ class DisplayWriterWorker : public Worker {
     void move_player_placeholder(MovePlayerPlaceholderEvent* move_placeholder_ev) {
         if (!is_movement_legal(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection())) {
 
-            display_writer->clear_cell_at(get_current_coordinate());
+            printf(AsciiEscapeCodes::RedTextColor);
 
             auto current_coord = get_current_coordinate();
-            game_board[current_coord.y * 3 + current_coord.x].state = MatrixCell::State::EMPTY;
-
-            clear_active_cells();          
-            
-            SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4);
-            
             display_writer->write_placeholder_for(move_placeholder_ev->getPlayer().get_symbol(), current_coord);
-            
-            Timeout* new_timeout = 0 ;
-            new_timeout->time_out(std::chrono::milliseconds(100));
 
-            game_board[current_coord.y * 3 + current_coord.x].is_current = true;
-            game_board[current_coord.y * 3 + current_coord.x].state = get_placeholder(move_placeholder_ev->getPlayer());
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
+            printf(AsciiEscapeCodes::ResetTextColor);
             display_writer->write_placeholder_for(move_placeholder_ev->getPlayer().get_symbol(), current_coord);
             
             event_queue.submit_event(new WaitPlayerInputEvent);
