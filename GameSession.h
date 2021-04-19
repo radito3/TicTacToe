@@ -72,14 +72,13 @@ public:
                                              display_writer(display_writer),
                                              input_reader(input_reader)
     {
-        player_turn = std::mt19937(std::random_device()())() % 1;
+        player_turn = std::mt19937(std::random_device()())() % 2;
         game_board.front().is_current = true;
     }
 
     ~GameSession() {
         delete display_writer;
         delete input_reader;
-        event_queue.clear();
     }
 
     void play() {

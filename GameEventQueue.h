@@ -17,6 +17,14 @@ class GameEventQueue {
 public:
     GameEventQueue() = default;
 
+    ~GameEventQueue() {
+        while (!queue.empty()) {
+            auto* ev = queue.front();
+            delete ev;
+            queue.pop();
+        }
+    }
+
     void submit_event(GameEvent* event) {
         lock_t lock(q_mutex);
         queue.push(std::forward<GameEvent*>(event));
@@ -26,15 +34,6 @@ public:
     void pop_event() {
         lock_t lock(q_mutex);
         if (!queue.empty()) {
-            queue.pop();
-        }
-    }
-
-    void clear() {
-        lock_t lock(q_mutex);
-        while (!queue.empty()) {
-            auto* ev = queue.front();
-            delete ev;
             queue.pop();
         }
     }
