@@ -169,9 +169,9 @@ public:
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {
-        return {GameEventType::WRITE_MATRIX, GameEventType::WRITE_PLAYER_PLACEHOLDER,
-                GameEventType::WRITE_PLAYER_SYMBOL, GameEventType::MOVE_PLAYER_PLACEHOLDER,
-                GameEventType::WRITE_STROKE, GameEventType::WRITE_DRAW_MSG, GameEventType::WRITE_VICTORY_MSG };
+        return { GameEventType::WRITE_MATRIX, GameEventType::WRITE_PLAYER_PLACEHOLDER,
+                 GameEventType::WRITE_PLAYER_SYMBOL, GameEventType::MOVE_PLAYER_PLACEHOLDER,
+                 GameEventType::WRITE_STROKE, GameEventType::WRITE_DRAW_MSG, GameEventType::WRITE_VICTORY_MSG };
     }
 
 };

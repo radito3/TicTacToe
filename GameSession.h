@@ -15,6 +15,7 @@
 #include "MatrixCell.h"
 #include "events/WriteMatrixEvent.h"
 #include "events/WritePlayerPlaceholderEvent.h"
+#include "events/ShutdownEvent.h"
 
 class GameSession {
     std::vector<MatrixCell> game_board;
@@ -87,6 +88,10 @@ public:
         for (auto& th : game_threads) {
             th.join();
         }
+    }
+
+    void force_shutdown() {
+        event_queue.submit_event(new ShutdownEvent);
     }
 };
 

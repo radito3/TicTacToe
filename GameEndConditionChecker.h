@@ -56,7 +56,7 @@ class GameEndConditionChecker : public Worker {
     }
 
     bool is_draw() const {
-        return std::none_of(game_board.cbegin(), game_board.cend(), [](auto& cell) {
+        return std::none_of(game_board.begin(), game_board.end(), [](auto& cell) {
             return cell.state == MatrixCell::State::EMPTY;
         });
     }
