@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <array>
+#include <thread>
+#include <chrono>
 #include "DisplayWriter.h"
 #include "AsciiEscapeCodes.h"
 #include "Symbol.h"
@@ -93,6 +95,16 @@ public:
 
         move_cursor_to(start_line + gitBashLineOffset + 1, start_column + column_offset);
         std::cout << _symbol;
+    }
+
+    void write_timeout_prompt() const override {
+        using namespace std::chrono_literals;
+        fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset + 1, 22);
+        std::cerr << "Your turn will end in 30 seconds due to inactivity";
+        std::this_thread::sleep_for(2s);
+        fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset + 1, 22);
+        std::cerr << "                                                  ";
+        move_cursor_to(gitBashLineOffset, 22);
     }
 
     void write_stroke(const Coordinate &coordinate, StrokeDirection direction) const override {

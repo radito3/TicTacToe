@@ -5,6 +5,7 @@
 #include <utility>
 #include "Worker.h"
 #include "InputReader.h"
+#include "ReadWithTimeout.h"
 #include "events/WritePlayerSymbolEvent.h"
 
 class InputReaderWorker : public Worker {
@@ -21,7 +22,10 @@ public:
                       get_current_coord_func(std::move(getCurrentCoordFunc)) {}
 
     void handle_event(GameEvent *event) override {
-        input_t input = input_reader->read();
+        auto [ has_timed_out, input ] = ReadWithTimeout(event_queue, input_reader)();
+        if (has_timed_out) {
+            return;
+        }
         if (input.set_symbol) {
             event_queue.submit_event(new WritePlayerSymbolEvent(get_current_player_func(), get_current_coord_func()));
             return;
