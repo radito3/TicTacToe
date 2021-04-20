@@ -2,9 +2,11 @@
 #define TICTACTOE_DISPLAYWRITERWORKER_H
 
 #include <vector>
+#include <chrono>
 #include "Worker.h"
 #include "DisplayWriter.h"
 #include "MatrixCell.h"
+#include "AsciiEscapeCodes.h"
 #include "events/WritePlayerSymbolEvent.h"
 #include "events/WritePlayerPlaceholderEvent.h"
 #include "events/MovePlayerPlaceholderEvent.h"
@@ -155,6 +157,9 @@ public:
                 display_writer->write_stroke(write_stroke_ev->get_coord(), write_stroke_ev->get_direction());
                 break;
             }
+            case GameEventType::WRITE_TIMEOUT_PROMPT:
+                display_writer->write_timeout_prompt();
+                break;
             case GameEventType::WRITE_VICTORY_MSG: {
                 auto *write_victory_msg_ev = dynamic_cast<WriteVictoryMessageEvent*>(event);
                 display_writer->write_victory_msg_for(write_victory_msg_ev->get_player_id());
@@ -171,7 +176,8 @@ public:
     std::unordered_set<GameEventType> get_supported_event_types() const override {
         return { GameEventType::WRITE_MATRIX, GameEventType::WRITE_PLAYER_PLACEHOLDER,
                  GameEventType::WRITE_PLAYER_SYMBOL, GameEventType::MOVE_PLAYER_PLACEHOLDER,
-                 GameEventType::WRITE_STROKE, GameEventType::WRITE_DRAW_MSG, GameEventType::WRITE_VICTORY_MSG };
+                 GameEventType::WRITE_TIMEOUT_PROMPT, GameEventType::WRITE_STROKE, GameEventType::WRITE_DRAW_MSG,
+                 GameEventType::WRITE_VICTORY_MSG };
     }
 
 };

@@ -34,6 +34,7 @@ class ConsoleReader : public InputReader {
 public:
 
     input_t read() const override {
+        using namespace std::chrono_literals;
         move_cursor_to(gitBashLineOffset, 22);
         char ch;
         while (std::cin >> ch) {
@@ -47,7 +48,7 @@ public:
             }
             fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
             std::cerr << "Invalid input";
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(1s);
             fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
             std::cerr << "             ";
             move_cursor_to(gitBashLineOffset, 22);

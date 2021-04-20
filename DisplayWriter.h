@@ -17,6 +17,8 @@ public:
 
     virtual void write_placeholder_for(Symbol, const Coordinate&) const = 0;
 
+    virtual void write_timeout_prompt() const = 0;
+
     virtual void write_stroke(const Coordinate&, StrokeDirection) const = 0;
 
     virtual void write_victory_msg_for(const std::string &) const = 0;

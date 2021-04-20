@@ -90,7 +90,7 @@ public:
         }
     }
 
-    void force_shutdown() {
+    void initiate_shutdown() {
         event_queue.submit_event(new ShutdownEvent);
     }
 };
