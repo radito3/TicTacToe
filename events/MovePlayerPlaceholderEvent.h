@@ -8,10 +8,16 @@ class MovePlayerPlaceholderEvent : public GameEvent {
     Player player;
     Coordinate starting_coord;
     MoveDirection direction;
+    Coordinate desired_coord;
 
 public:
     MovePlayerPlaceholderEvent(Player player, Coordinate startingCoord, MoveDirection direction)
-            : player(std::move(player)), starting_coord(startingCoord), direction(direction) {}
+            : player(std::move(player)), starting_coord(startingCoord), direction(direction),
+            desired_coord({-1, -1}) {}
+
+    MovePlayerPlaceholderEvent(Player player, Coordinate startingCoord, Coordinate desiredCoord)
+            : player(std::move(player)), starting_coord(startingCoord), direction(MoveDirection::INVALID),
+            desired_coord(desiredCoord) {}
 
     GameEventType get_event_type() const noexcept override {
         return GameEventType::MOVE_PLAYER_PLACEHOLDER;
@@ -27,6 +33,10 @@ public:
 
     MoveDirection getDirection() const {
         return direction;
+    }
+
+    Coordinate getDesiredCoord() const {
+        return desired_coord;
     }
 };
 

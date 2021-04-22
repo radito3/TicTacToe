@@ -8,7 +8,7 @@
 #include "InputReader.h"
 #include "AsciiEscapeCodes.h"
 
-class ConsoleReader : public InputReader {
+class ConsoleReader : public TimeoutInputReader {
 
     const int gitBashLineOffset = 4;
 
@@ -46,11 +46,11 @@ public:
             if (move_dir != MoveDirection::INVALID) {
                 return input_t(move_dir);
             }
-            fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
-            std::cerr << "Invalid input";
+            move_cursor_to(gitBashLineOffset, 22);
+            std::cout << "Invalid input";
             std::this_thread::sleep_for(1s);
-            fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset, 22);
-            std::cerr << "             ";
+            move_cursor_to(gitBashLineOffset, 22);
+            std::cout << "             ";
             move_cursor_to(gitBashLineOffset, 22);
         }
         return input_t(false);

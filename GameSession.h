@@ -26,9 +26,6 @@ class GameSession {
     GameEventQueue event_queue;
     std::vector<std::thread> game_threads;
 
-    DisplayWriter* display_writer;
-    InputReader* input_reader;
-
     Coordinate get_current_coordinate() const {
         for (int row = 0; row < 3; ++row) {
             for (int col = 0; col < 3; ++col) {
@@ -49,9 +46,8 @@ class GameSession {
     }
 
     void initiate() {
-        game_threads.emplace_back(DisplayWriterWorker(event_queue, display_writer, game_board));
-        game_threads.emplace_back(InputReaderWorker(event_queue, input_reader,
-                                                    std::bind(&GameSession::get_current_player, this),
+        game_threads.emplace_back(DisplayWriterWorker(event_queue, game_board, player1, player2));
+        game_threads.emplace_back(InputReaderWorker(event_queue,std::bind(&GameSession::get_current_player, this),
                                                     std::bind(&GameSession::get_current_coordinate, this)));
         game_threads.emplace_back(GameEndConditionChecker(event_queue, game_board));
         game_threads.emplace_back(GamePlayerSwitcher(event_queue, std::bind(&GameSession::switch_current_player, this),
@@ -65,21 +61,11 @@ class GameSession {
     }
 
 public:
-    GameSession(Player player1, Player player2,
-                DisplayWriter* display_writer,
-                InputReader* input_reader) : game_board(9, MatrixCell()),
-                                             player1(std::forward<Player>(player1)),
-                                             player2(std::forward<Player>(player2)),
-                                             display_writer(display_writer),
-                                             input_reader(input_reader)
+    GameSession(Player player1, Player player2) : game_board(9, MatrixCell()),
+            player1(std::forward<Player>(player1)), player2(std::forward<Player>(player2))
     {
         player_turn = std::mt19937(std::random_device()())() % 2;
         game_board.front().is_current = true;
-    }
-
-    ~GameSession() {
-        delete display_writer;
-        delete input_reader;
     }
 
     void play() {
@@ -92,6 +78,11 @@ public:
 
     void initiate_shutdown() {
         event_queue.submit_event(new ShutdownEvent);
+    }
+
+    std::string to_string() const {
+        //TODO serialize the board, player turn and two players
+        return "";
     }
 };
 

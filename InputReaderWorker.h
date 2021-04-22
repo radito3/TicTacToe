@@ -5,32 +5,54 @@
 #include <utility>
 #include "Worker.h"
 #include "InputReader.h"
-#include "ReadWithTimeout.h"
 #include "events/WritePlayerSymbolEvent.h"
+#include "events/SwitchPlayerEvent.h"
+#include "events/WriteTimeoutPromptEvent.h"
 
 class InputReaderWorker : public Worker {
-    InputReader* input_reader;
     std::function<Player()> get_current_player_func;
     std::function<Coordinate()> get_current_coord_func;
 
+    GameEvent* parse_input(const Player& current_player, const input_t& input) {
+        switch (input.type) {
+            case input_type_t::DIRECTIONAL:
+                return new MovePlayerPlaceholderEvent(current_player, get_current_coord_func(), input.move_direction);
+            case input_type_t::POSITIONAL:
+                return new MovePlayerPlaceholderEvent(current_player, get_current_coord_func(), input.coord);
+            case input_type_t::SET:
+                return new WritePlayerSymbolEvent(current_player, get_current_coord_func());
+        }
+    }
+
 public:
-    InputReaderWorker(GameEventQueue &eventQueue, InputReader *inputReader,
+    InputReaderWorker(GameEventQueue &eventQueue,
                       std::function<Player()> getCurrentPlayerFunc,
                       std::function<Coordinate()> getCurrentCoordFunc)
-                      : Worker(eventQueue), input_reader(inputReader),
+                      : Worker(eventQueue),
                       get_current_player_func(std::move(getCurrentPlayerFunc)),
                       get_current_coord_func(std::move(getCurrentCoordFunc)) {}
 
     void handle_event(GameEvent *event) override {
-        auto [ has_timed_out, input ] = ReadWithTimeout(event_queue, input_reader)();
+        using namespace std::chrono_literals;
+        auto current_player = get_current_player_func();
+        input_t input(false);
+        bool has_timed_out = false;
+
+        try {
+            input = current_player.read_input(30s);
+        } catch (const timeout_exception& timeout) {
+            event_queue.submit_event(new WriteTimeoutPromptEvent(current_player));
+            has_timed_out = true;
+        }
         if (has_timed_out) {
-            return;
+            try {
+                input = current_player.read_input(30s);
+            } catch (const timeout_exception& timeout) {
+                event_queue.submit_event(new SwitchPlayerEvent);
+                return;
+            }
         }
-        if (input.set_symbol) {
-            event_queue.submit_event(new WritePlayerSymbolEvent(get_current_player_func(), get_current_coord_func()));
-            return;
-        }
-        event_queue.submit_event(new MovePlayerPlaceholderEvent(get_current_player_func(), get_current_coord_func(), input.move_direction));
+        event_queue.submit_event(parse_input(current_player, input));
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {

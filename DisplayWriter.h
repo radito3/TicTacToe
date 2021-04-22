@@ -2,8 +2,8 @@
 #define TICTACTOE_DISPLAYWRITER_H
 
 #include "Coordinate.h"
+#include "Symbol.h"
 #include "Direction.h"
-#include "Player.h"
 
 class DisplayWriter {
 public:
@@ -17,13 +17,11 @@ public:
 
     virtual void write_placeholder_for(Symbol, const Coordinate&) const = 0;
 
-    virtual void write_timeout_prompt() const = 0;
-
     virtual void write_stroke(const Coordinate&, StrokeDirection) const = 0;
 
-    virtual void write_victory_msg_for(const std::string &) const = 0;
+    virtual void write_msg(const std::string_view&) const = 0;
 
-    virtual void write_draw_msg() const = 0;
+    virtual void write_temp_msg(const std::string_view&) const = 0;
 
 };
 

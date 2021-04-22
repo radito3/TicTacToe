@@ -5,6 +5,8 @@
 #include <array>
 #include <thread>
 #include <chrono>
+#include <algorithm>
+#include <iterator>
 #include "DisplayWriter.h"
 #include "AsciiEscapeCodes.h"
 #include "Symbol.h"
@@ -97,16 +99,6 @@ public:
         std::cout << _symbol;
     }
 
-    void write_timeout_prompt() const override {
-        using namespace std::chrono_literals;
-        fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset + 1, 22);
-        std::cerr << "Your turn will end in 30 seconds due to inactivity";
-        std::this_thread::sleep_for(2s);
-        fprintf(stderr, AsciiEscapeCodes::MoveToPos, gitBashLineOffset + 1, 22);
-        std::cerr << "                                                  ";
-        move_cursor_to(gitBashLineOffset, 22);
-    }
-
     void write_stroke(const Coordinate &coordinate, StrokeDirection direction) const override {
         auto [ start_column, start_line ] = determine_start_coordinates(coordinate);
 
@@ -174,17 +166,19 @@ public:
                 std::cout << "//";
                 break;
         }
-
     }
 
-    void write_victory_msg_for(const std::string &player_id) const override {
+    void write_msg(const std::string_view &message) const override {
         move_cursor_to(gitBashLineOffset, 22);
-        std::cout << "Player \"" << player_id << "\" is victorious";
+        std::cout << message;
     }
 
-    void write_draw_msg() const override {
+    void write_temp_msg(const std::string_view &message) const override {
+        this->write_msg(message);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         move_cursor_to(gitBashLineOffset, 22);
-        std::cout << "Draw";
+        std::fill_n(std::ostream_iterator<char>(std::cout), message.length(), ' ');
+        move_cursor_to(gitBashLineOffset, 22);
     }
 };
 

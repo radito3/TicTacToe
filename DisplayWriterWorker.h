@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <chrono>
+#include <sstream>
 #include "Worker.h"
 #include "DisplayWriter.h"
 #include "MatrixCell.h"
@@ -15,10 +16,18 @@
 #include "events/WriteStrokeEvent.h"
 #include "events/WriteVictoryMessageEvent.h"
 #include "events/WaitPlayerInputEvent.h"
+#include "events/WriteTimeoutPromptEvent.h"
 
 class DisplayWriterWorker : public Worker {
-    DisplayWriter* display_writer;
     std::vector<MatrixCell>& game_board;
+    Player player1;
+    Player player2;
+
+    template<typename Function>
+    void write_to_both_players(Function&& function) {
+        player1.write_output(std::forward<Function>(function));
+        player2.write_output(std::forward<Function>(function));
+    }
 
     static MatrixCell::State get_state(const Player& player) {
         return player.get_symbol() == Symbol::CIRCLE ? MatrixCell::State::CIRCLE : MatrixCell::State::CROSS;
@@ -84,12 +93,32 @@ class DisplayWriterWorker : public Worker {
         return -1;
     }
 
+    void flash_player_placeholder(const Player& current_player) {
+        auto current_coord = get_current_coordinate();
+
+        printf(AsciiEscapeCodes::RedTextColor);
+        current_player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
+            writer->write_placeholder_for(p_symbol, current_coord);
+        });
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
+        printf(AsciiEscapeCodes::ResetTextColor);
+        current_player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
+            writer->write_placeholder_for(p_symbol, current_coord);
+        });
+    }
+
     void move_player_placeholder(MovePlayerPlaceholderEvent* move_placeholder_ev) {
+        const auto& current_player = move_placeholder_ev->getPlayer();
         if (!is_movement_legal(move_placeholder_ev->getStartingCoord(), move_placeholder_ev->getDirection())) {
+            flash_player_placeholder(current_player);
             event_queue.submit_event(new WaitPlayerInputEvent);
             return;
         }
-        display_writer->clear_cell_at(get_current_coordinate());
+        current_player.write_output([this](auto* writer, auto& p_id, auto p_symbol) {
+            writer->clear_cell_at(get_current_coordinate());
+        });
 
         auto current_coord = get_current_coordinate();
         game_board[current_coord.y * 3 + current_coord.x].state = MatrixCell::State::EMPTY;
@@ -100,7 +129,9 @@ class DisplayWriterWorker : public Worker {
         game_board[new_coord.y * 3 + new_coord.x].is_current = true;
         game_board[new_coord.y * 3 + new_coord.x].state = get_placeholder(move_placeholder_ev->getPlayer());
 
-        display_writer->write_placeholder_for(move_placeholder_ev->getPlayer().get_symbol(), new_coord);
+        current_player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
+            writer->write_placeholder_for(p_symbol, new_coord);
+        });
 
         event_queue.submit_event(new WaitPlayerInputEvent);
     }
@@ -114,8 +145,10 @@ class DisplayWriterWorker : public Worker {
             throw std::runtime_error("current coordinate doesn't match current player's placeholder");
         }
         game_board[matrix_index].state = get_state(player);
-        display_writer->clear_cell_at(coord);
-        display_writer->write_symbol(player.get_symbol(), coord);
+        write_to_both_players([&](auto* writer, auto& p_id, auto p_symbol) {
+            writer->clear_cell_at(coord);
+            writer->write_symbol(player.get_symbol(), coord);
+        });
 
         clear_active_cells();
         int next_avail_pos = get_next_available_pos(coord);
@@ -127,8 +160,9 @@ class DisplayWriterWorker : public Worker {
     }
 
 public:
-    DisplayWriterWorker(GameEventQueue &eventQueue, DisplayWriter *displayWriter, std::vector<MatrixCell> &gameBoard)
-            : Worker(eventQueue), display_writer(displayWriter), game_board(gameBoard) {}
+    DisplayWriterWorker(GameEventQueue &eventQueue, std::vector<MatrixCell> &gameBoard,
+                        const Player& p1, const Player& p2)
+            : Worker(eventQueue), game_board(gameBoard), player1(p1), player2(p2) {}
 
     void handle_event(GameEvent *event) override {
         switch (event->get_event_type()) {
@@ -139,7 +173,9 @@ public:
                 write_player_symbol(dynamic_cast<WritePlayerSymbolEvent*>(event));
                 break;
             case GameEventType::WRITE_MATRIX:
-                display_writer->write_grid();
+                write_to_both_players([&](auto* writer, auto& p_id, auto p_symbol) {
+                    writer->write_grid();
+                });
                 break;
             case GameEventType::WRITE_PLAYER_PLACEHOLDER: {
                 auto *write_placeholder_ev = dynamic_cast<WritePlayerPlaceholderEvent*>(event);
@@ -147,27 +183,41 @@ public:
                 auto coord = write_placeholder_ev->get_coordinate();
 
                 game_board[coord.y * 3 + coord.x].state = get_placeholder(player);
-                display_writer->write_placeholder_for(player.get_symbol(), coord);
+                player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
+                    writer->write_placeholder_for(p_symbol, coord);
+                });
 
                 event_queue.submit_event(new WaitPlayerInputEvent);
                 break;
             }
             case GameEventType::WRITE_STROKE: {
                 auto *write_stroke_ev = dynamic_cast<WriteStrokeEvent*>(event);
-                display_writer->write_stroke(write_stroke_ev->get_coord(), write_stroke_ev->get_direction());
+                write_to_both_players([&](auto* writer, auto& p_id, auto p_symbol) {
+                    writer->write_stroke(write_stroke_ev->get_coord(), write_stroke_ev->get_direction());
+                });
                 break;
             }
-            case GameEventType::WRITE_TIMEOUT_PROMPT:
-                display_writer->write_timeout_prompt();
+            case GameEventType::WRITE_TIMEOUT_PROMPT: {
+                auto* timeout_ev = dynamic_cast<WriteTimeoutPromptEvent*>(event);
+                timeout_ev->get_player().write_output([&](auto* writer, auto& p_id, auto p_symbol) {
+                    writer->write_temp_msg("Your turn will end in 30 seconds due to inactivity");
+                });
                 break;
+            }
             case GameEventType::WRITE_VICTORY_MSG: {
                 auto *write_victory_msg_ev = dynamic_cast<WriteVictoryMessageEvent*>(event);
-                display_writer->write_victory_msg_for(write_victory_msg_ev->get_player_id());
+                write_to_both_players([&](auto* writer, auto& p_id, auto p_symbol) {
+                    std::stringstream ss;
+                    ss << write_victory_msg_ev->get_player_id() << " is victorious";
+                    writer->write_msg(ss.str().data());
+                });
                 event_queue.submit_event(new ShutdownEvent);
                 break;
             }
             case GameEventType::WRITE_DRAW_MSG:
-                display_writer->write_draw_msg();
+                write_to_both_players([&](auto* writer, auto& p_id, auto p_symbol) {
+                    writer->write_msg("Draw");
+                });
                 event_queue.submit_event(new ShutdownEvent);
                 break;
         }
