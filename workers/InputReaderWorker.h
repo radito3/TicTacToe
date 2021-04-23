@@ -4,10 +4,10 @@
 #include <functional>
 #include <utility>
 #include "Worker.h"
-#include "InputReader.h"
-#include "events/WritePlayerSymbolEvent.h"
-#include "events/SwitchPlayerEvent.h"
-#include "events/WriteTimeoutPromptEvent.h"
+#include "../io/InputReader.h"
+#include "../events/WritePlayerSymbolEvent.h"
+#include "../events/SwitchPlayerEvent.h"
+#include "../events/WriteTimeoutPromptEvent.h"
 
 class InputReaderWorker : public Worker {
     std::function<Player()> get_current_player_func;
@@ -25,7 +25,7 @@ class InputReaderWorker : public Worker {
     }
 
 public:
-    InputReaderWorker(GameEventQueue &eventQueue,
+    InputReaderWorker(GameEventQueue *eventQueue,
                       std::function<Player()> getCurrentPlayerFunc,
                       std::function<Coordinate()> getCurrentCoordFunc)
                       : Worker(eventQueue),
@@ -41,18 +41,18 @@ public:
         try {
             input = current_player.read_input(30s);
         } catch (const timeout_exception& timeout) {
-            event_queue.submit_event(new WriteTimeoutPromptEvent(current_player));
+            event_queue->submit_event(new WriteTimeoutPromptEvent(current_player));
             has_timed_out = true;
         }
         if (has_timed_out) {
             try {
                 input = current_player.read_input(30s);
             } catch (const timeout_exception& timeout) {
-                event_queue.submit_event(new SwitchPlayerEvent);
+                event_queue->submit_event(new SwitchPlayerEvent);
                 return;
             }
         }
-        event_queue.submit_event(parse_input(current_player, input));
+        event_queue->submit_event(parse_input(current_player, input));
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {

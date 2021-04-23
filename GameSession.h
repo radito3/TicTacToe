@@ -5,12 +5,12 @@
 #include <vector>
 #include <thread>
 #include "GameEventQueue.h"
-#include "DisplayWriter.h"
-#include "DisplayWriterWorker.h"
-#include "InputReaderWorker.h"
-#include "GamePlayerSwitcher.h"
-#include "GameEndConditionChecker.h"
-#include "InputReader.h"
+#include "io/DisplayWriter.h"
+#include "io/InputReader.h"
+#include "workers/DisplayWriterWorker.h"
+#include "workers/InputReaderWorker.h"
+#include "workers/GamePlayerSwitcher.h"
+#include "workers/GameEndConditionChecker.h"
 #include "Player.h"
 #include "MatrixCell.h"
 #include "events/WriteMatrixEvent.h"
@@ -46,11 +46,11 @@ class GameSession {
     }
 
     void initiate() {
-        game_threads.emplace_back(DisplayWriterWorker(event_queue, game_board, player1, player2));
-        game_threads.emplace_back(InputReaderWorker(event_queue,std::bind(&GameSession::get_current_player, this),
+        game_threads.emplace_back(DisplayWriterWorker(&event_queue, &game_board, player1, player2));
+        game_threads.emplace_back(InputReaderWorker(&event_queue,std::bind(&GameSession::get_current_player, this),
                                                     std::bind(&GameSession::get_current_coordinate, this)));
-        game_threads.emplace_back(GameEndConditionChecker(event_queue, game_board));
-        game_threads.emplace_back(GamePlayerSwitcher(event_queue, std::bind(&GameSession::switch_current_player, this),
+        game_threads.emplace_back(GameEndConditionChecker(&event_queue, &game_board));
+        game_threads.emplace_back(GamePlayerSwitcher(&event_queue, std::bind(&GameSession::switch_current_player, this),
                                                      std::bind(&GameSession::get_current_player, this),
                                                      std::bind(&GameSession::get_current_coordinate, this)));
     }
@@ -80,10 +80,21 @@ public:
         event_queue.submit_event(new ShutdownEvent);
     }
 
-    std::string to_string() const {
-        //TODO serialize the board, player turn and two players
-        return "";
-    }
+    friend std::ostream& operator<<(std::ostream&, const GameSession&);
 };
+
+std::ostream& operator<<(std::ostream& out, const GameSession& session) {
+    out << "{\"game_board\":[";
+    for (int i = 0; i < session.game_board.size(); ++i) {
+        const MatrixCell& cell = session.game_board[i];
+        out << "{\"state\":" << static_cast<int>(cell.state) << ",\"is_current\":" << cell.is_current << '}';
+        if (i != session.game_board.size() - 1) {
+            out << ',';
+        }
+    }
+    out << "],\"player_turn\":" << session.player_turn;
+    out << ",\"player_1\":" << session.player1 << ",\"player_2\":" << session.player2 << '}';
+    return out;
+}
 
 #endif //TICTACTOE_GAMESESSION_H

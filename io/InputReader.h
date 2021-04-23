@@ -4,7 +4,7 @@
 #include <condition_variable>
 #include <mutex>
 #include <chrono>
-#include "Direction.h"
+#include "../Direction.h"
 
 enum class input_type_t {
     DIRECTIONAL, POSITIONAL, SET

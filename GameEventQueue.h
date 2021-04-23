@@ -9,10 +9,9 @@
 class GameEventQueue {
     std::queue<GameEvent*> queue;
     std::mutex q_mutex;
+    std::condition_variable empty_cond;
 
     typedef std::unique_lock<std::mutex> lock_t;
-
-    std::condition_variable empty_cond;
 
 public:
     GameEventQueue() = default;

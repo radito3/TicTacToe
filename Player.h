@@ -4,8 +4,8 @@
 #include <utility>
 #include <memory>
 #include "Symbol.h"
-#include "DisplayWriter.h"
-#include "InputReader.h"
+#include "io/DisplayWriter.h"
+#include "io/InputReader.h"
 
 class Player {
     std::string id;
@@ -38,6 +38,13 @@ public:
         }
         return reader->read();
     }
+
+    friend std::ostream& operator<<(std::ostream&, const Player&);
 };
+
+std::ostream& operator<<(std::ostream& out, const Player& player) {
+    out << "{\"id\":\"" << player.id << "\",\"symbol\":" << static_cast<int>(player.symbol) << '}';
+    return out;
+}
 
 #endif //TICTACTOE_PLAYER_H

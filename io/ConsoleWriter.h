@@ -8,8 +8,8 @@
 #include <algorithm>
 #include <iterator>
 #include "DisplayWriter.h"
-#include "AsciiEscapeCodes.h"
-#include "Symbol.h"
+#include "../AsciiEscapeCodes.h"
+#include "../Symbol.h"
 
 class ConsoleWriter : public DisplayWriter {
 
@@ -179,6 +179,14 @@ public:
         move_cursor_to(gitBashLineOffset, 22);
         std::fill_n(std::ostream_iterator<char>(std::cout), message.length(), ' ');
         move_cursor_to(gitBashLineOffset, 22);
+    }
+
+    void color_output(const char *color_code) const override {
+        printf(color_code);
+    }
+
+    void reset_color() const override {
+        printf(AsciiEscapeCodes::ResetTextColor);
     }
 };
 

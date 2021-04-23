@@ -6,7 +6,7 @@
 #include <chrono>
 #include <cstdio>
 #include "InputReader.h"
-#include "AsciiEscapeCodes.h"
+#include "../AsciiEscapeCodes.h"
 
 class ConsoleReader : public TimeoutInputReader {
 

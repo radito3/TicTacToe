@@ -1,9 +1,9 @@
 #ifndef TICTACTOE_DISPLAYWRITER_H
 #define TICTACTOE_DISPLAYWRITER_H
 
-#include "Coordinate.h"
-#include "Symbol.h"
-#include "Direction.h"
+#include "../Coordinate.h"
+#include "../Symbol.h"
+#include "../Direction.h"
 
 class DisplayWriter {
 public:
@@ -23,6 +23,9 @@ public:
 
     virtual void write_temp_msg(const std::string_view&) const = 0;
 
+    virtual void color_output(const char*) const { }
+
+    virtual void reset_color() const { }
 };
 
 #endif //TICTACTOE_DISPLAYWRITER_H

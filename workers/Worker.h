@@ -2,9 +2,8 @@
 #define TICTACTOE_WORKER_H
 
 #include <unordered_set>
-#include <exception>
-#include "GameEventQueue.h"
-#include "events/ShutdownEvent.h"
+#include "../GameEventQueue.h"
+#include "../events/ShutdownEvent.h"
 
 class Worker {
 
@@ -13,25 +12,25 @@ class Worker {
             handle_event(event);
         } catch (const std::runtime_error& e) {
             std::cerr << e.what() << std::endl;
-            event_queue.submit_event(new ShutdownEvent);
+            event_queue->submit_event(new ShutdownEvent);
         }
     }
 
 protected:
-    GameEventQueue& event_queue;
+    GameEventQueue* event_queue;
 
 public:
-    explicit Worker(GameEventQueue &eventQueue) : event_queue(eventQueue) {}
+    explicit Worker(GameEventQueue *eventQueue) : event_queue(eventQueue) {}
 
     void operator()() {
         auto supported_event_types = get_supported_event_types();
         while (true) {
-            auto* event = event_queue.get_next_event();
+            auto* event = event_queue->get_next_event();
             if (event->get_event_type() == GameEventType::SHUTDOWN) {
                 break;
             }
             if (supported_event_types.find(event->get_event_type()) != supported_event_types.end()) {
-                event_queue.pop_event();
+                event_queue->pop_event();
                 process_event_and_handle_exceptions(event);
                 delete event;
             }

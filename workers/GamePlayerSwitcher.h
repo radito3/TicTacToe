@@ -3,9 +3,8 @@
 
 #include <functional>
 #include <utility>
-#include <unordered_set>
 #include "Worker.h"
-#include "events/WritePlayerPlaceholderEvent.h"
+#include "../events/WritePlayerPlaceholderEvent.h"
 
 class GamePlayerSwitcher : public Worker {
     std::function<void()> switch_player_func;
@@ -13,7 +12,7 @@ class GamePlayerSwitcher : public Worker {
     std::function<Coordinate()> get_current_coord_func;
 
 public:
-    GamePlayerSwitcher(GameEventQueue &eventQueue, std::function<void()> switchPlayerFunc,
+    GamePlayerSwitcher(GameEventQueue *eventQueue, std::function<void()> switchPlayerFunc,
                        std::function<Player()> getCurrentPlayerFunc,
                        std::function<Coordinate()> getCurrentCoordFunc)
                        : Worker(eventQueue),
@@ -23,7 +22,7 @@ public:
 
     void handle_event(GameEvent *event) override {
         switch_player_func();
-        event_queue.submit_event(new WritePlayerPlaceholderEvent(get_current_player_func(), get_current_coord_func()));
+        event_queue->submit_event(new WritePlayerPlaceholderEvent(get_current_player_func(), get_current_coord_func()));
     }
 
     std::unordered_set<GameEventType> get_supported_event_types() const override {

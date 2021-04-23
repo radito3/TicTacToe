@@ -1,5 +1,5 @@
-#include "ConsoleWriter.h"
-#include "ConsoleReader.h"
+#include "io/ConsoleWriter.h"
+#include "io/ConsoleReader.h"
 #include "GameSession.h"
 
 int main() {
