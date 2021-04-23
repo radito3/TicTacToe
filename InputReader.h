@@ -1,7 +1,8 @@
 #ifndef TICTACTOE_INPUTREADER_H
 #define TICTACTOE_INPUTREADER_H
 
-#include <future>
+#include <condition_variable>
+#include <mutex>
 #include <chrono>
 #include "Direction.h"
 
@@ -40,15 +41,26 @@ public:
 };
 
 class TimeoutInputReader : public InputReader {
+    std::condition_variable timer;
+    std::mutex t_mutex;
+
 public:
 
     template<typename Rep, typename Period>
-    input_t read_with_timeout(const std::chrono::duration<Rep, Period>& duration) {
-        std::future<input_t> read_result = std::async(std::launch::async, read);
-        if (read_result.wait_for(duration) == std::future_status::timeout) {
+    input_t read_with_timeout(std::chrono::duration<Rep, Period> duration) {
+        input_t input(false);
+
+        std::thread reader([&input, this]() {
+            input = read();
+            timer.notify_one();
+        });
+        reader.detach();
+
+        std::unique_lock<std::mutex> lock(t_mutex);
+        if (timer.wait_for(lock, duration) == std::cv_status::timeout) {
             throw timeout_exception();
         }
-        return read_result.get();
+        return input;
     }
 };
 
