@@ -3,6 +3,7 @@
 
 #include <utility>
 #include <memory>
+#include <functional>
 #include "Symbol.h"
 #include "io/DisplayWriter.h"
 #include "io/InputReader.h"
@@ -25,8 +26,7 @@ public:
         return symbol;
     }
 
-    template<typename Function>
-    void write_output(Function&& function) const {
+    void write_output(std::function<void(DisplayWriter*, const std::string&, Symbol)>&& function) const {
         function(writer.get(), id, symbol);
     }
 

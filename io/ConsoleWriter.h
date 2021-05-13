@@ -177,16 +177,16 @@ public:
         this->write_msg(message);
         std::this_thread::sleep_for(std::chrono::seconds(1));
         move_cursor_to(gitBashLineOffset, 22);
-        std::fill_n(std::ostream_iterator<char>(std::cout), message.length(), ' ');
+        std::cout << std::string(message.length(), ' ');
         move_cursor_to(gitBashLineOffset, 22);
     }
 
-    void color_output(const char *color_code) const override {
-        printf(color_code);
-    }
-
-    void reset_color() const override {
+    void flash_placeholder(Symbol symbol, const Coordinate& coordinate) const override {
+        printf(AsciiEscapeCodes::RedTextColor);
+        write_placeholder_for(symbol, coordinate);
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         printf(AsciiEscapeCodes::ResetTextColor);
+        write_placeholder_for(symbol, coordinate);
     }
 };
 

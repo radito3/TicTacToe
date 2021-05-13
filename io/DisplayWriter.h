@@ -23,9 +23,7 @@ public:
 
     virtual void write_temp_msg(const std::string_view&) const = 0;
 
-    virtual void color_output(const char*) const { }
-
-    virtual void reset_color() const { }
+    virtual void flash_placeholder(Symbol, const Coordinate&) const = 0;
 };
 
 #endif //TICTACTOE_DISPLAYWRITER_H

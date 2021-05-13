@@ -79,15 +79,7 @@ class MovePlayerPlaceholderHandler : public DisplayEventHandler {
         auto current_coord = get_current_coordinate();
 
         current_player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
-            writer->color_output(AsciiEscapeCodes::RedTextColor);
-            writer->write_placeholder_for(p_symbol, current_coord);
-        });
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(500));
-
-        current_player.write_output([&](auto* writer, auto& p_id, auto p_symbol) {
-            writer->reset_color();
-            writer->write_placeholder_for(p_symbol, current_coord);
+            writer->flash_placeholder(p_symbol, current_coord);
         });
     }
 
